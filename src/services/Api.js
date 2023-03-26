@@ -11,7 +11,9 @@ function fetchImages(searchText, page) {
       return response.json();
     }
     return Promise.reject(
-      new Error(`There are not any images according the request ${searchText}`)
+      new Error(
+        `There are not any images according to the request ${searchText}`
+      )
     );
   });
 

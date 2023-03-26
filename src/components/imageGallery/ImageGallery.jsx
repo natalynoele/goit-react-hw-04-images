@@ -76,7 +76,7 @@ body.scrollIntoView(
   }
 
   render() {
-    const { items, error, status, isShowModal, selectedImage } = this.state;
+    const { items, error, status, isShowModal } = this.state;
     if (status === 'idle') {
       return (
         <div className="PageTitle">
