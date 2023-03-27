@@ -34,7 +34,7 @@ class ImageGallery extends Component {
     }));
   };
 
-  handleModal = (url, alt) => {
+  openModal = (url, alt) => {
     this.setState({ isShowModal: true, selectedImage: { url, alt } });
   };
   closeModal = () => {
@@ -68,7 +68,6 @@ class ImageGallery extends Component {
         })
         .catch(error => this.setState({ error, status: 'rejected' }));
     }
-    console.log(this.state.totalPage)
     this.scrollToBottom();
   }
 
@@ -109,7 +108,7 @@ class ImageGallery extends Component {
                   url={webformatURL}
                   alt={tags}
                   modalUrl={largeImageURL}
-                  clickImg={this.handleModal}
+                  clickImg={this.openModal}
                 />
               );
             })}
