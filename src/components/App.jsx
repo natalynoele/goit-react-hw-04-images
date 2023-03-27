@@ -8,11 +8,7 @@ import { useState } from 'react';
 const App = () => {
 
   const [searchText, setSearchText] = useState('');
-  
-  // state = {
-  //   searchText: '',
-  //   items: null,
-  // };
+
  const handleFormSubmit =  searchValue => {
     setSearchText( searchValue );
   };
