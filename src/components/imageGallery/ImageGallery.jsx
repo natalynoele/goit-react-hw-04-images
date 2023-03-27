@@ -1,11 +1,12 @@
+import React from 'react';
 import { Component } from 'react';
 import PropTypes from 'prop-types';
-import ClipLoader from 'react-spinners/ClipLoader';
+import { ThreeDots } from 'react-loader-spinner';
 import fetchImages from 'services/Api';
 import ImageGalleryItem from 'components/imageGalleryItem/ImageGalleryItem';
 import Button from 'components/button/Button';
 import Modal from 'components/modal/Modal';
-import { BsFillArrowUpCircleFill } from 'react-icons/bs';
+
 import './Style_ImageGallery.scss';
 
 class ImageGallery extends Component {
@@ -14,11 +15,17 @@ class ImageGallery extends Component {
       url: '',
       alt: '',
     },
+    status: 'idle',
     error: null,
     items: [],
-    status: 'idle',
     page: 1,
     isShowModal: false,
+  };
+
+  galleryEndRef = React.createRef();
+
+  scrollToBottom = () => {
+    this.galleryEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   handleLoadMore = () => {
@@ -34,29 +41,17 @@ class ImageGallery extends Component {
     this.setState({ isShowModal: false, selectedImage: { url: '', alt: '' } });
   };
 
-  scrollToTop = () => {
-const body = document.querySelector('#root');
-
-body.scrollIntoView(
-  {
-    behavior: 'smooth',
-  },
-  500
-);
-  }
-
   componentDidUpdate(prevProps, prevState) {
     const prevSearch = prevProps.searchText;
     const nextSearch = this.props.searchText;
     const prevPage = prevState.page;
     const nextPage = this.state.page;
     const { page } = this.state;
-
     if (prevSearch !== nextSearch || prevPage !== nextPage) {
       if (prevSearch !== nextSearch) {
-        this.setState({ items: [], page: 1 });
+        this.setState({ items: [], page: 1, totalPage:0 });
       }
-      this.setState({ status: 'pending' });
+      this.setState({ status: 'pending', visible: true });
       fetchImages(nextSearch, page)
         .then(data => {
           if (!data.totalHits) {
@@ -68,11 +63,13 @@ body.scrollIntoView(
           }
           this.setState(prevState => ({
             items: [...prevState.items, ...data.hits],
-            status: 'resolved',
+            status: 'resolved',           
           }));
         })
         .catch(error => this.setState({ error, status: 'rejected' }));
     }
+    console.log(this.state.totalPage)
+    this.scrollToBottom();
   }
 
   render() {
@@ -85,7 +82,20 @@ body.scrollIntoView(
       );
     }
     if (status === 'pending') {
-      return <ClipLoader size={75} color="#2c6ae8" loading={true} />;
+      return (
+        <div className="LoaderWrap">
+          <ThreeDots
+            height="80"
+            width="80"
+            radius="9"
+            color="#5957d0"
+            ariaLabel="three-dots-loading"
+            wrapperStyle={{}}
+            wrapperClassName="LoaderWrap"
+            visible={true}
+          />
+        </div>
+      );
     }
 
     if (status === 'resolved') {
@@ -104,10 +114,8 @@ body.scrollIntoView(
               );
             })}
           </ul>
+          <div ref={this.galleryEndRef} />
           <Button click={this.handleLoadMore}>Load More</Button>
-          <Button click={this.scrollToTop}>
-            Up <BsFillArrowUpCircleFill />
-          </Button>
 
           {isShowModal && (
             <Modal image={this.state.selectedImage} close={this.closeModal} />
@@ -116,7 +124,11 @@ body.scrollIntoView(
       );
     }
     if (status === 'rejected') {
-      return <p className="ErrorMessage">Whoops, something went wrong: {error.message}</p>;
+      return (
+        <p className="ErrorMessage">
+          Whoops, something went wrong: {error.message}
+        </p>
+      );
     }
   }
 }

@@ -30,8 +30,6 @@ class ImageGalleryItem extends Component {
           className="ImageGalleryItem-image"
           onLoad={() => {
             this.setState({ isLoaded: true });
-
-            console.log('test');
           }}
         />
       </li>

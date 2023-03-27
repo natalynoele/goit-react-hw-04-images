@@ -1,5 +1,9 @@
-.GalleryWrapper{
- text-align: center; 
+.GalleryWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 .ImageGallery {
   display: grid;
@@ -12,4 +16,9 @@
   list-style: none;
   margin-left: auto;
   margin-right: auto;
+}
+.LoaderWrap{
+  display: flex;
+    align-items: center;
+    justify-content: center;
 }
