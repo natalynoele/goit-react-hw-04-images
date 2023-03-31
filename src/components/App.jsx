@@ -7,16 +7,17 @@ import { useState } from 'react';
 
 const App = () => {
 
-  const [searchText, setSearchText] = useState('');
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
 
  const handleFormSubmit =  searchValue => {
-    setSearchText( searchValue );
+   setQuery(searchValue);  
   };
   
     return (
       <div className="PageContainer">
         <SearchBar onSubmit={handleFormSubmit} />
-        <ImageGallery searchText={searchText} />       
+        <ImageGallery query={query} />       
         <ToastContainer />
       </div>
     );

@@ -6,20 +6,20 @@ import './Style_SearchBar.scss';
 
 const SearchBar = ({ onSubmit }) => {  
   
-  const [searchText, setSearchText] = useState('');
+  const [query, setQuery] = useState('');
  
   const handleSubmit = evt => {
     evt.preventDefault();
-    if (searchText.trim() === '') {
-      toast('Please, write down a search query');
+    if (query.trim() === '') {
+      toast.error('Please, write down a search query');
       return;
     }
-    onSubmit(searchText);
-    setSearchText('');
+    onSubmit(query);
+    setQuery('');
   };
 
   const handleChange = ({ currentTarget }) => {
-    setSearchText(currentTarget.value.toLowerCase());
+    setQuery(currentTarget.value.toLowerCase());
   };
   
     return (
@@ -31,7 +31,7 @@ const SearchBar = ({ onSubmit }) => {
             autoComplete="off"
             autoFocus
             placeholder="Search images and photos"
-            value={searchText}
+            value={query}
             onChange={handleChange}
           />
           <button type="submit" className="SearchForm-button">
