@@ -1,29 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import { ThreeDots } from 'react-loader-spinner';
-import fetchImages from 'services/Api';
-import GalleryList from 'components/galleryList/GalleryList';
+import PropTypes from 'prop-types';
 import Button from 'components/button/Button';
 import Modal from 'components/modal/Modal';
+import GalleryList from 'components/galleryList/GalleryList';
+import Header from 'components/header/Header';
+import fetchImages from 'services/Api';
 import './Style_ImageGallery.scss';
 
-const ImageGallery = ({ query }) => {
+const ImageGallery = ({ query, page }) => {
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
-  const [page, setPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(page);
+  const [perPage, setPerPage] = useState(12);
   const [isLoad, setIsLoad] = useState(true);
-  const [isEnd, setIsEnd] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [isEndOfCollection, setIsEndOfCollection] = useState(false);
   const [isShowModal, setIsShowModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState({
     url: '',
     alt: '',
   });
-
-  const handleLoadMore = () => {
-    setPage(prevPage => prevPage + 1);
-  };
 
   const openModal = (url, alt) => {
     setIsShowModal(true);
@@ -35,96 +34,97 @@ const ImageGallery = ({ query }) => {
     setSelectedImage({ url: '', alt: '' });
   };
 
+  const getImages = async () => {
+    try {
+      const images = await fetchImages(query, currentPage, perPage);
+      const data = await images.hits;
+      if (data.length === 0) {
+        setStatus('rejected');
+        setIsLoad(false);
+        throw new Error(`Sorry, there are no images for the request ${query}`);
+      }
+      if (total > 0 && items.length + perPage >= images.totalHits) {
+        setIsLoad(false);
+        setIsEndOfCollection(true);
+        toast.info(
+          "We're sorry, but you've reached the end of search results."
+        );
+      }
+      setItems(prevState => [...prevState, ...data]);
+      setStatus('resolved');
+      setTotal(images.totalHits);
+    } catch (error) {
+      setStatus('rejected');
+      setError(error);
+    }
+  };
+
+  const handleLoadMore = () => {
+    setCurrentPage(prevPage => prevPage + 1);
+  };
+
   useEffect(() => {
-    setPage(1);
     setItems([]);
   }, [query]);
 
   useEffect(() => {
     if (!query) return;
     setStatus('pending');
-    fetchImages(query, page)
-      .then(data => {
-        if (data.hits.length === 0) {
-          setStatus('rejected');
-          return Promise.reject(
-            new Error(
-              `There are not any images according to the request ${query}`
-            )
-          );
-        }
-
-        setItems(prevState => [...prevState, ...data.hits]);
-        setStatus('resolved');
-
-        if (items.length > 0 && items.length === data.totalHits) {
-          setIsLoad(false);
-          setIsEnd(true)
-        }
-      })
-      .catch(error => {
-        setError(error);
-        setStatus('rejected');
-      });
-  }, [page, query]);
+     getImages();  
+  
+  }, [query, currentPage]);
 
   if (status === 'idle') {
     return (
-      <div className="PageTitle">
-        <h2>Are you looking for images? Just write down a request! </h2>
-      </div>
+      <Header title="Are you looking for images? Just write the request!" />
     );
   }
 
-  if (status === 'pending' && items.length === 0) {
+  if (status === 'pending') {
     return (
-      <div className="LoaderWrap">
-        <ThreeDots
-          height="80"
-          width="80"
-          radius="9"
-          color="#5957d0"
-          ariaLabel="three-dots-loading"
-          wrapperStyle={{}}
-          wrapperClassName="LoaderWrap"
-          visible={true}
-        />
-      </div>
-    );
-  }
-
-  if (status === 'pending' && items.length > 0) {
-    return (
-      <div className="GalleryWrapper">
-        <GalleryList items={items} openModal={openModal} />
-        <div className="LoaderWrap">
-          <ThreeDots
-            height="80"
-            width="80"
-            radius="9"
-            color="#5957d0"
-            ariaLabel="three-dots-loading"
-            wrapperStyle={{}}
-            wrapperClassName="LoaderWrap"
-            visible={true}
-          />
+      <>
+        <Header title="Loading..." />
+        <div className="GalleryWrapper">
+          {items.length > 0 && (
+            <GalleryList items={items} openModal={openModal} />
+          )}
+          <div className="LoaderWrap">
+            <ThreeDots
+              height="80"
+              width="80"
+              radius="9"
+              color="#5957d0"
+              ariaLabel="three-dots-loading"
+              wrapperStyle={{}}
+              wrapperClassName="LoaderWrap"
+              visible={true}
+            />
+          </div>
+          {items.length > 0 && <Button click={handleLoadMore}>Loading</Button>}
         </div>
-        <Button click={handleLoadMore}>Loading</Button>
-      </div>
+      </>
     );
   }
 
   if (status === 'resolved') {
     return (
-      <div className="GalleryWrapper">
-        <GalleryList items={items} openModal={openModal} />
+      <>
+        <Header
+          title={`We found ${total} images for your request "${query}"`}
+        />
+        <div className="GalleryWrapper">
+          <GalleryList items={items} openModal={openModal} />
 
-        {isLoad && <Button click={handleLoadMore}>Load More</Button>}
-        {isEnd && toast.info('You reached the end of the collection') && (
-          <p>You reached the end of the collection</p>
-        )}
-        {isShowModal && <Modal image={selectedImage} close={closeModal} />}
-      </div>
+          {isLoad && <Button click={handleLoadMore}>Load More</Button>}
+          {isEndOfCollection && (
+            <p>
+              This is the end of the collection. Didn't find anything you like
+              to? Just try another request!
+            </p>
+          )}
+          {isShowModal && <Modal image={selectedImage} close={closeModal} />}
+        </div>
+      </>
     );
   }
   if (status === 'rejected') {
@@ -137,6 +137,6 @@ const ImageGallery = ({ query }) => {
 };
 
 ImageGallery.propTypes = {
-  query: PropTypes.string,
+  searchText: PropTypes.string,
 };
 export default ImageGallery;
