@@ -9,10 +9,11 @@ import { useState } from 'react';
 const App = () => {
 
   const [query, setQuery] = useState('');
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
  
  const handleFormSubmit =  searchValue => {
-   setQuery(searchValue);  
+   setQuery(searchValue); 
+   setPage(1);
   };
   
     return (

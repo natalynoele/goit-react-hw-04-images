@@ -10,11 +10,11 @@ import fetchImages from 'services/Api';
 import './Style_ImageGallery.scss';
 
 const ImageGallery = ({ query, page }) => {
+  const perPage = 12;
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
-  const [currentPage, setCurrentPage] = useState(page);
-  const [perPage, setPerPage] = useState(12);
+  const [currentPage, setCurrentPage] = useState(page); 
   const [isLoad, setIsLoad] = useState(true);
   const [total, setTotal] = useState(0);
   const [isEndOfCollection, setIsEndOfCollection] = useState(false);
@@ -70,8 +70,7 @@ const ImageGallery = ({ query, page }) => {
   useEffect(() => {
     if (!query) return;
     setStatus('pending');
-     getImages();  
-  
+    getImages();    
   }, [query, currentPage]);
 
   if (status === 'idle') {
