@@ -5,10 +5,10 @@ const GalleryList = ({ items, openModal }) => {
   return (
     <ul className="ImageGallery">
       {items &&
-        items.map(({id, webformatURL, tags,largeImageURL }) => {
+        items.map(({id, webformatURL, tags,largeImageURL },index) => {
           return (
             <ImageGalleryItem
-              key={id}
+              key={`${id}-${index}`}
               url={webformatURL}
               alt={tags}
               modalUrl={largeImageURL}

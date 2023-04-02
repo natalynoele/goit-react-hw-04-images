@@ -8,21 +8,21 @@ import GalleryList from 'components/galleryList/GalleryList';
 import Header from 'components/header/Header';
 import fetchImages from 'services/Api';
 import './Style_ImageGallery.scss';
-
-const ImageGallery = ({ query, page }) => {
+const ImageGallery = ({ query }) => {
   const perPage = 12;
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
-  const [currentPage, setCurrentPage] = useState(page); 
   const [isLoad, setIsLoad] = useState(true);
   const [total, setTotal] = useState(0);
   const [isEndOfCollection, setIsEndOfCollection] = useState(false);
   const [isShowModal, setIsShowModal] = useState(false);
+    const [counterPage, setCounterPage] = useState(1);
   const [selectedImage, setSelectedImage] = useState({
     url: '',
     alt: '',
   });
+
 
   const openModal = (url, alt) => {
     setIsShowModal(true);
@@ -34,33 +34,10 @@ const ImageGallery = ({ query, page }) => {
     setSelectedImage({ url: '', alt: '' });
   };
 
-  const getImages = async () => {
-    try {
-      const images = await fetchImages(query, currentPage, perPage);
-      const data = await images.hits;
-      if (data.length === 0) {
-        setStatus('rejected');
-        setIsLoad(false);
-        throw new Error(`Sorry, there are no images for the request ${query}`);
-      }
-      if (total > 0 && items.length + perPage >= images.totalHits) {
-        setIsLoad(false);
-        setIsEndOfCollection(true);
-        toast.info(
-          "We're sorry, but you've reached the end of search results."
-        );
-      }
-      setItems(prevState => [...prevState, ...data]);
-      setStatus('resolved');
-      setTotal(images.totalHits);
-    } catch (error) {
-      setStatus('rejected');
-      setError(error);
-    }
-  };
-
-  const handleLoadMore = () => {
-    setCurrentPage(prevPage => prevPage + 1);
+  
+  const handleLoadMore = page => {
+    getImages(page);
+      setCounterPage(page);
   };
 
   useEffect(() => {
@@ -70,8 +47,34 @@ const ImageGallery = ({ query, page }) => {
   useEffect(() => {
     if (!query) return;
     setStatus('pending');
-    getImages();    
-  }, [query, currentPage]);
+    getImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  const getImages = async (page=1) => {
+   try {
+     const images = await fetchImages(query, page, perPage);
+     const data = await images.hits;
+     if (data.length === 0) {
+       setStatus('rejected');
+       setIsLoad(false);
+       throw new Error(`Sorry, there are no images for the request ${query}`);
+     }
+    
+     if (total > 0 && items.length + perPage >= images.totalHits) {
+       setIsLoad(false);
+       setIsEndOfCollection(true);
+       toast.info("We're sorry, but you've reached the end of search results.");
+     }
+     setItems(prevState => [...prevState, ...data]);
+     setStatus('resolved');
+     setTotal(images.totalHits);
+   } catch (error) {
+     setStatus('rejected');
+     setError(error);
+   }
+ };
+ 
 
   if (status === 'idle') {
     return (
@@ -84,7 +87,7 @@ const ImageGallery = ({ query, page }) => {
       <>
         <Header title="Loading..." />
         <div className="GalleryWrapper">
-          {items.length > 0 && (
+          {items.length >0 && (
             <GalleryList items={items} openModal={openModal} />
           )}
           <div className="LoaderWrap">
@@ -114,7 +117,11 @@ const ImageGallery = ({ query, page }) => {
         <div className="GalleryWrapper">
           <GalleryList items={items} openModal={openModal} />
 
-          {isLoad && <Button click={handleLoadMore}>Load More</Button>}
+          {isLoad && (
+            <Button click={handleLoadMore} pages={counterPage}>
+              Load More
+            </Button>
+          )}
           {isEndOfCollection && (
             <p>
               This is the end of the collection. Didn't find anything you like
