@@ -42,6 +42,7 @@ const ImageGallery = ({ query }) => {
 
   useEffect(() => {
     setItems([]);
+    setIsLoad(true);
   }, [query]);
 
   useEffect(() => {
